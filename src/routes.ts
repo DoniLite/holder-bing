@@ -1,21 +1,50 @@
-import { Dataset, createPlaywrightRouter } from 'crawlee';
+import { createPlaywrightRouter } from 'crawlee';
+import dotEnv from 'dotenv';
+import { CustomDataset } from './DataSet.js';
+import { Store } from './Store.js';
 
 export const router = createPlaywrightRouter();
 
-router.addDefaultHandler(async ({ enqueueLinks, log }) => {
+router.addDefaultHandler(async ({ enqueueLinks, log, request }) => {
+    dotEnv.config();
     log.info(`enqueueing new URLs`);
     await enqueueLinks({
-        globs: ['https://apify.com/*'],
-        label: 'detail',
+        globs: [`${request.loadedUrl}/*`],
+        label: 'hoster',
     });
 });
 
-router.addHandler('detail', async ({ request, page, log }) => {
+router.addHandler('hoster', async ({ request, page, log, enqueueLinks }) => {
     const title = await page.title();
     log.info(`${title}`, { url: request.loadedUrl });
-
-    await Dataset.pushData({
+    const dataSet = new CustomDataset('MY_DATA_SET');
+    const store = new Store('INPUT');
+    await store.setValue('url', request.loadedUrl);
+    await dataSet.setData({
         url: request.loadedUrl,
         title,
     });
+    await enqueueLinks({
+        label: 'details',
+    });
+});
+
+router.addHandler('details', async ({ page, log }) => {
+    const title = await page.title();
+    const token = process.env.GOSTIFY_TOKEN;
+    const dataSet = new CustomDataset('MY_DATA_SET');
+    const data = await dataSet.exportData();
+    const serverCkecker = await fetch('http://localhost:3081/api/store', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ data }),
+    });
+    if (!serverCkecker.ok) {
+        log.error('Failed to store data to the server');
+    }
+    log.info('data sended to server');
+    log.info(title);
 });

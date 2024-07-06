@@ -1,22 +1,26 @@
 import { Actor } from 'apify';
+import { Dictionary } from 'crawlee';
 
-export class Dataset {
+export class CustomDataset {
     dataset: string;
     constructor(dataset: string) {
         this.dataset = dataset;
     }
 
     async setData(...args: dataArgs[]): Promise<void> {
-        const dataset = await Actor.openDataset('some-name');
+        const dataset = await Actor.openDataset(this.dataset);
         // Write a single row
-        args.forEach(arg => {
-            await dataset.pushData({ arg.key, value: arg.value });
-        })
-        await dataset.pushData({ key: 'bar' });
+        await dataset.pushData([...args]);
+    }
+
+    async exportData(): Promise<StoreData> {
+        const dataset = await Actor.openDataset(this.dataset);
+        const data = dataset.export();
+        return data;
     }
 }
 
 type dataArgs = {
-    key: string;
-    value: unknown;
+    [string: string]: string
 }
+type StoreData = Dictionary[];
