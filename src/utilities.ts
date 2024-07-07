@@ -9,3 +9,12 @@ export const addUrlToqueue = async ({ urlPath }: requestToQueue) => {
     // Enqueue the initial request
     await requestQueue.addRequest({ url: urlPath });
 };
+
+export const getBaseURL = (url: string) => {
+    try {
+        const parsedURL = new URL(url);
+        return parsedURL.origin;
+    } catch (e) {
+        return null;
+    }
+};

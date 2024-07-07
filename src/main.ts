@@ -2,9 +2,14 @@ import { Actor } from 'apify';
 import { PlaywrightCrawler } from 'crawlee';
 import { router } from './routes.js';
 
-interface Input {
-    startUrls: string[];
-    maxRequestsPerCrawl: number;
+export interface Input {
+    startUrls: urlData[];
+    maxRequestsPerCrawl?: number;
+}
+
+type urlData = {
+    url: string;
+    title: string;
 }
 
 export enum NotifyType {
@@ -18,7 +23,12 @@ await Actor.init();
 
 // Structure of input is defined in input_schema.json
 const {
-    startUrls = ['https://apify.com/'],
+    startUrls = [
+        {
+            url: 'https://example.com',
+            title: 'Example Domain',
+        },
+    ] as const,
     maxRequestsPerCrawl = 100,
 } = await Actor.getInput<Input>() ?? {} as Input;
 

@@ -1,8 +1,9 @@
 import { Actor } from 'apify';
+import { Input } from './main.js';
 
 export class Store {
     private storeName: string;
-    constructor(storeName: string) {
+    constructor(storeName = 'INPUT') {
         this.storeName = storeName;
     }
 
@@ -15,5 +16,10 @@ export class Store {
     async setValue(key: string, value: unknown): Promise<void> {
         const store = await Actor.openKeyValueStore(this.storeName);
         await store.setValue(key, value);
+    }
+
+    async setToDefaultSote(value: Input): Promise<void> {
+        const store = await Actor.openKeyValueStore();
+        await store.setValue('INPUT', value);
     }
 }
