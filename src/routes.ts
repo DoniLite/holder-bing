@@ -2,15 +2,23 @@ import { createPlaywrightRouter, Dictionary } from 'crawlee';
 import dotEnv from 'dotenv';
 import { CustomDataset } from './DataSet.js';
 import { Store } from './Store.js';
-import { Input } from './main.js';
+import { Input } from './index.js';
 
 export const router = createPlaywrightRouter();
 
 router.addDefaultHandler(async ({ enqueueLinks, log, request }) => {
     dotEnv.config();
+    const store = new Store();
+    const { value, storeInstance } = await store.getToDefaultSote();
+    const urls = [...value.startUrls];
+    const Uri = [] as string[];
+    urls.forEach((urlEl) => {
+        Uri.push(`${urlEl.url}/*`);
+    });
+    await storeInstance.drop();
     log.info(`enqueueing new URLs`);
     await enqueueLinks({
-        globs: [`${request.loadedUrl}/*`],
+        globs: [`${request.loadedUrl}/*`, ...Uri],
         label: 'hoster',
     });
 });
