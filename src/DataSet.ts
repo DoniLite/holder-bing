@@ -30,7 +30,7 @@ export class CustomDataset {
                 if (page.url === url) {
                     return;
                 }
-                memo.push(page);
+                memo.push(value);
             });
             return memo;
         }, memoParam);
