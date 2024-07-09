@@ -1,16 +1,7 @@
 import { Actor } from 'apify';
 import { PlaywrightCrawler } from 'crawlee';
 import { router } from './routes.js';
-
-export interface Input {
-    startUrls: urlData[];
-    maxRequestsPerCrawl?: number;
-}
-
-type urlData = {
-    url: string;
-    title: string;
-}
+import { Input } from './index.js';
 
 export enum NotifyType {
     'success',
