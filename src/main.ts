@@ -18,6 +18,8 @@ export enum NotifyType {
     'warning',
 }
 
+const token = process.env.GOSTIFY_TOKEN;
+
 // Initialize the Apify SDK
 await Actor.init();
 
@@ -41,7 +43,10 @@ const crawler = new PlaywrightCrawler({
     failedRequestHandler: async ({ request, log }) => {
         const hostServerRequest = await fetch('http://localhost:3081/api/notifications', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
             body: JSON.stringify({
                 hostService: 'Holder-Bing',
                 type: NotifyType.failure,

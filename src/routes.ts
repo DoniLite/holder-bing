@@ -1,4 +1,4 @@
-import { createPlaywrightRouter } from 'crawlee';
+import { createPlaywrightRouter, Dictionary } from 'crawlee';
 import dotEnv from 'dotenv';
 import { CustomDataset } from './DataSet.js';
 import { Store } from './Store.js';
@@ -17,7 +17,7 @@ router.addDefaultHandler(async ({ enqueueLinks, log, request }) => {
 
 router.addHandler('hoster', async ({ request, page, log, enqueueLinks }) => {
     const title = await page.title();
-    const links = await page.$$('a');
+    // const links = await page.$$('a');
     log.info(`${title}`, { url: request.loadedUrl });
     const dataSet = new CustomDataset('MY_DATA_SET');
     const store = new Store('INPUT');
@@ -26,7 +26,7 @@ router.addHandler('hoster', async ({ request, page, log, enqueueLinks }) => {
         url: request.loadedUrl,
         title,
     });
-    const data = await dataSet.exportData();
+    const data = [] as Dictionary[];
     await dataSet.reduceUrl(data);
     await enqueueLinks({
         label: 'details',
