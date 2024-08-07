@@ -14,7 +14,7 @@ export class DomManipulator implements DomObjModel {
         return links;
     }
 
-    async someMetaData<T extends MetaData, K = unknown>(doSomethingWithPage?: (page: Page) => K): Promise<T> {
+    async someMetaData<T extends MetaData, K = unknown>(doSomethingWithPage?: (page: Page) => Promise<K>): Promise<T> {
         const metaData = await this.#page.$$eval('meta', (metaElements) => {
             const metaObj = {
                 url: this.#page.url(),

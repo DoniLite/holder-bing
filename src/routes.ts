@@ -1,8 +1,11 @@
-import { createPlaywrightRouter, Dictionary } from 'crawlee';
+import { createPlaywrightRouter } from 'crawlee';
 import dotEnv from 'dotenv';
 import { CustomDataset } from './DataSet.js';
 import { Store } from './Store.js';
 import { Input } from './index.js';
+import { DomManipulator } from './Dom.js';
+
+const server = process.env.NODE_ENV !== 'production' ? process.env.SERVER_PRODUCTION_HOST : process.env.SERVER_LOCAL_HOST;
 
 export const router = createPlaywrightRouter();
 
@@ -13,12 +16,13 @@ router.addDefaultHandler(async ({ enqueueLinks, log, request }) => {
     const urls = [...value.startUrls];
     const Uri = [] as string[];
     urls.forEach((urlEl) => {
-        Uri.push(`${urlEl.url}/*`);
+        Uri.push(urlEl.url);
     });
     await storeInstance.drop();
     log.info(`enqueueing new URLs`);
     await enqueueLinks({
-        globs: [`${request.loadedUrl}/*`, ...Uri],
+        globs: [`${request.loadedUrl}/*`],
+        urls: [...Uri],
         label: 'hoster',
     });
 });
@@ -27,15 +31,24 @@ router.addHandler('hoster', async ({ request, page, log, enqueueLinks }) => {
     const title = await page.title();
     // const links = await page.$$('a');
     log.info(`${title}`, { url: request.loadedUrl });
+    const inpt = {
+        startUrls: [
+            { url: request.loadedUrl, title },
+        ],
+    };
+    const dom = new DomManipulator(page);
+    const urls = await dom.returnAllLinks();
+    const metaData = await dom.someMetaData();
+    const storageData = {
+        uris: urls,
+        ...metaData,
+    };
     const dataSet = new CustomDataset('MY_DATA_SET');
+    await dataSet.setData(storageData);
     const store = new Store('INPUT');
-    await store.setValue('url', request.loadedUrl);
-    await dataSet.setData({
-        url: request.loadedUrl,
-        title,
-    });
-    const data = [] as Dictionary[];
-    await dataSet.reduceUrl(data);
+    const { value } = await store.getToDefaultSote();
+    value.startUrls = [...value.startUrls, ...inpt.startUrls];
+    await store.setToDefaultSote(value);
     await enqueueLinks({
         label: 'details',
     });
@@ -51,7 +64,7 @@ router.addHandler('details', async ({ page, log }) => {
         startUrls: [...data],
     } as Input;
     await store.setToDefaultSote(input);
-    const serverCkecker = await fetch('http://localhost:3081/api/store', {
+    const serverCkecker = await fetch(`${server}store`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

@@ -5,7 +5,7 @@ export interface DomObjModel {
     #page: Page;
 
     returnAllLinks(): Promise<string[]>;
-    someMetaData<T extends MetaData, K = unknown>(doSomethingWithPage?: (page: Page) => K): Promise<T & K >;
+    someMetaData<T extends MetaData, K = unknown>(doSomethingWithPage?: (page: Page) => Promise<K>): Promise<T & K >;
 }
 
 export interface MetaData {
@@ -28,3 +28,5 @@ export type UrlData = {
     url: string;
     title: string;
 };
+
+export type StoreData<T extends keyof unknown> = Dictionary<T>[];

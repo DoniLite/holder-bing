@@ -1,6 +1,7 @@
 import { Actor } from 'apify';
 import { Dictionary } from 'crawlee';
 import { getBaseURL } from './utilities.js';
+import { StoreData } from './index.js';
 
 export class CustomDataset {
     dataset: string;
@@ -15,10 +16,10 @@ export class CustomDataset {
         await dataset.pushData([...args]);
     }
 
-    async exportData(): Promise<StoreData> {
+    async exportData<T extends keyof unknown>(): Promise<StoreData<T>> {
         const dataset = await Actor.openDataset(this.dataset);
-        const data = dataset.export();
-        return data;
+        const data = await dataset.export();
+        return data as StoreData<T>;
     }
 
     async reduceUrl(memoParam: Dictionary[]): Promise<void> {
@@ -39,6 +40,5 @@ export class CustomDataset {
 }
 
 type dataArgs = {
-    [string: string]: string
+    [key: string]: string | number | string[] | number[] ;
 }
-type StoreData = Dictionary[];
