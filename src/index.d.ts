@@ -30,3 +30,9 @@ export type UrlData = {
 };
 
 export type StoreData<T extends keyof unknown> = Dictionary<T>[];
+
+export enum NotificationType {
+    'success',
+    'failure',
+    'warning',
+}
